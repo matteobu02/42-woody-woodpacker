@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/12 12:01:59 by mbucci            #+#    #+#             */
-/*   Updated: 2023/08/14 02:33:36 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/08/14 02:36:30 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,6 @@
 
 int pack(t_arg *file)
 {
-	(void)file;
-
 	// TODO: copy original binary into new mapping
 
 	// unmap memory used for file
