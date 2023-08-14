@@ -1,31 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   woody.h                                            :+:      :+:    :+:   */
+/*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/08/12 02:00:30 by mbucci            #+#    #+#             */
-/*   Updated: 2023/08/14 02:31:16 by mbucci           ###   ########.fr       */
+/*   Created: 2023/08/12 12:04:44 by mbucci            #+#    #+#             */
+/*   Updated: 2023/08/14 01:29:06 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#include <stdio.h>
 
-#include <elf.h>
-
-typedef struct s_arg
+int write_error(const char *msg)
 {
-	const char			*name;
-	long				bsize;
-	const Elf64_Ehdr	*base_ptr;
-	int					arch;
-}	t_arg;
+	if (msg)
+		perror("Error");
+	else
+		fprintf(stderr, "Error: %s\n", msg);
 
-int check_arg(t_arg *file);
-
-/* packer.c */
-int pack(t_arg *file);
-
-/* utils.c */
-int write_error(const char *msg);
+	return 1;
+}

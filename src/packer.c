@@ -1,31 +1,33 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   woody.h                                            :+:      :+:    :+:   */
+/*   packer.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/08/12 02:00:30 by mbucci            #+#    #+#             */
-/*   Updated: 2023/08/14 02:31:16 by mbucci           ###   ########.fr       */
+/*   Created: 2023/08/12 12:01:59 by mbucci            #+#    #+#             */
+/*   Updated: 2023/08/14 02:33:36 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#include "woody.h"
+#include <sys/mman.h>
+#include <stdlib.h>
+//#include <elf.h>
+//#include <stdint.h>
 
-#include <elf.h>
-
-typedef struct s_arg
+int pack(t_arg *file)
 {
-	const char			*name;
-	long				bsize;
-	const Elf64_Ehdr	*base_ptr;
-	int					arch;
-}	t_arg;
+	(void)file;
 
-int check_arg(t_arg *file);
+	// TODO: copy original binary into new mapping
 
-/* packer.c */
-int pack(t_arg *file);
+	// unmap memory used for file
+	if (munmap((void *)file->base_ptr, file->bsize) == -1)
+		return write_error(NULL);
 
-/* utils.c */
-int write_error(const char *msg);
+	// TODO: add loader
+	// TODO: encrypt .text section
+
+	return 0;
+}

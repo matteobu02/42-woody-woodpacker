@@ -5,7 +5,9 @@ SRCDIR		=	./src/
 OBJDIR		=	./obj/
 INCLUDE		=	./include/
 
-SRC			=	# TODO
+SRC			=	main.c		\
+				packer.c	\
+				utils.c		\
 
 OBJ			=	${addprefix $(OBJDIR), $(SRC:%.c=%.o)}
 
@@ -16,7 +18,7 @@ OBJ			=	${addprefix $(OBJDIR), $(SRC:%.c=%.o)}
 all:			$(NAME)
 
 $(NAME):		$(OBJDIR) $(OBJ)
-				#@make -C libft/
+				@#@make -C libft/
 				$(CXX) $(CXXFLAGS) $(OBJ) -o $(NAME)
 
 clean:
@@ -24,7 +26,7 @@ clean:
 
 fclean:			clean
 				rm -rf $(NAME)
-				#@make -C libft/ fclean
+				@#@make -C libft/ fclean
 
 re:				fclean all
 
