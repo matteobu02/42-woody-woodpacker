@@ -1,27 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   packer.c                                           :+:      :+:    :+:   */
+/*   ft_putchar_fd.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/08/12 12:01:59 by mbucci            #+#    #+#             */
-/*   Updated: 2023/08/14 17:48:03 by mbucci           ###   ########.fr       */
+/*   Created: 2021/09/04 18:52:25 by mbucci            #+#    #+#             */
+/*   Updated: 2021/09/15 00:20:13 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "woody.h"
-#include <sys/mman.h>
-#include <stdlib.h>
-//#include <elf.h>
-//#include <stdint.h>
+#include "libft.h"
 
-int pack(t_packed *file)
+void	ft_putchar_fd(char c, int fd)
 {
-	(void)file;
-	// TODO: locate .text section
-	// TODO: add loader
-	// TODO: encrypt .text section
-
-	return 0;
+	write(fd, &c, 1);
 }

@@ -1,27 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   packer.c                                           :+:      :+:    :+:   */
+/*   ft_strrchr.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/08/12 12:01:59 by mbucci            #+#    #+#             */
-/*   Updated: 2023/08/14 17:48:03 by mbucci           ###   ########.fr       */
+/*   Created: 2021/09/01 17:05:36 by mbucci            #+#    #+#             */
+/*   Updated: 2021/09/12 16:34:35 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "woody.h"
-#include <sys/mman.h>
-#include <stdlib.h>
-//#include <elf.h>
-//#include <stdint.h>
+#include "libft.h"
 
-int pack(t_packed *file)
+char	*ft_strrchr(const char *s, int c)
 {
-	(void)file;
-	// TODO: locate .text section
-	// TODO: add loader
-	// TODO: encrypt .text section
+	size_t	len;
 
-	return 0;
+	len = ft_strlen(s);
+	c = (unsigned char)c;
+	if (c == 0)
+		return ((char *)&s[len]);
+	while (len > 0)
+	{
+		if (s[len - 1] == c)
+			return ((char *)&s[len - 1]);
+		len--;
+	}
+	return (0);
 }

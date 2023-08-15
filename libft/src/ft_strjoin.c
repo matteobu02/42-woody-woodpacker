@@ -1,27 +1,35 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   packer.c                                           :+:      :+:    :+:   */
+/*   ft_strjoin.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/08/12 12:01:59 by mbucci            #+#    #+#             */
-/*   Updated: 2023/08/14 17:48:03 by mbucci           ###   ########.fr       */
+/*   Created: 2021/09/02 12:41:15 by mbucci            #+#    #+#             */
+/*   Updated: 2021/09/19 23:04:48 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "woody.h"
-#include <sys/mman.h>
-#include <stdlib.h>
-//#include <elf.h>
-//#include <stdint.h>
+#include "libft.h"
 
-int pack(t_packed *file)
+char	*ft_strjoin(char const *s1, char const *s2)
 {
-	(void)file;
-	// TODO: locate .text section
-	// TODO: add loader
-	// TODO: encrypt .text section
+	char	*joined;
+	int		i;
+	int		j;
 
-	return 0;
+	if (!s1 || !s2)
+		return (NULL);
+	joined = (char *)malloc(ft_strlen(s1) + ft_strlen(s2) + 1);
+	if (!joined)
+		return (NULL);
+	i = 0;
+	while (s1[++i])
+		joined[i] = s1[i];
+	j = i;
+	i = -1;
+	while (s2[++i])
+		joined[j + i] = s2[i];
+	joined[i + j] = '\0';
+	return (joined);
 }

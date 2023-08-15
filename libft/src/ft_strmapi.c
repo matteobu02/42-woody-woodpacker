@@ -1,27 +1,35 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   packer.c                                           :+:      :+:    :+:   */
+/*   ft_strmapi.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/08/12 12:01:59 by mbucci            #+#    #+#             */
-/*   Updated: 2023/08/14 17:48:03 by mbucci           ###   ########.fr       */
+/*   Created: 2021/09/04 18:03:12 by mbucci            #+#    #+#             */
+/*   Updated: 2021/09/15 22:45:28 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "woody.h"
-#include <sys/mman.h>
-#include <stdlib.h>
-//#include <elf.h>
-//#include <stdint.h>
+#include "libft.h"
 
-int pack(t_packed *file)
+char	*ft_strmapi(char const *s, char (*f)(unsigned int, char))
 {
-	(void)file;
-	// TODO: locate .text section
-	// TODO: add loader
-	// TODO: encrypt .text section
+	unsigned int	i;
+	char			*str;
+	size_t			len;
 
-	return 0;
+	if (!s || !f)
+		return (NULL);
+	len = ft_strlen(s);
+	str = (char *)malloc(len + 1);
+	if (!str)
+		return (NULL);
+	i = 0;
+	while (s[i] != '\0')
+	{
+		str[i] = f(i, s[i]);
+		i++;
+	}
+	str[i] = '\0';
+	return (str);
 }

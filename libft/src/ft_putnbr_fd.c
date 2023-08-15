@@ -1,27 +1,33 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   packer.c                                           :+:      :+:    :+:   */
+/*   ft_putnbr_fd.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/08/12 12:01:59 by mbucci            #+#    #+#             */
-/*   Updated: 2023/08/14 17:48:03 by mbucci           ###   ########.fr       */
+/*   Created: 2021/09/04 19:20:51 by mbucci            #+#    #+#             */
+/*   Updated: 2021/09/15 00:10:47 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "woody.h"
-#include <sys/mman.h>
-#include <stdlib.h>
-//#include <elf.h>
-//#include <stdint.h>
+#include "libft.h"
 
-int pack(t_packed *file)
+void	ft_putnbr_fd(int n, int fd)
 {
-	(void)file;
-	// TODO: locate .text section
-	// TODO: add loader
-	// TODO: encrypt .text section
+	unsigned int	i;
 
-	return 0;
+	if (n < 0)
+	{
+		ft_putchar_fd('-', fd);
+		i = -n;
+	}
+	else
+		i = n;
+	if (i > 9)
+	{
+		ft_putnbr_fd(i / 10, fd);
+		i %= 10;
+	}
+	if (i < 10)
+		ft_putchar_fd(i + 48, fd);
 }

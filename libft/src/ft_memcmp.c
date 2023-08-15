@@ -1,27 +1,31 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   packer.c                                           :+:      :+:    :+:   */
+/*   ft_memcmp.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/08/12 12:01:59 by mbucci            #+#    #+#             */
-/*   Updated: 2023/08/14 17:48:03 by mbucci           ###   ########.fr       */
+/*   Created: 2021/09/01 18:16:11 by mbucci            #+#    #+#             */
+/*   Updated: 2021/09/16 12:47:32 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "woody.h"
-#include <sys/mman.h>
-#include <stdlib.h>
-//#include <elf.h>
-//#include <stdint.h>
+#include "libft.h"
 
-int pack(t_packed *file)
+int	ft_memcmp(const void *s1, const void *s2, size_t n)
 {
-	(void)file;
-	// TODO: locate .text section
-	// TODO: add loader
-	// TODO: encrypt .text section
+	size_t		i;
+	int			num;
+	const char	*p1;
+	const char	*p2;
 
-	return 0;
+	if (n == 0)
+		return (0);
+	i = 0;
+	p1 = s1;
+	p2 = s2;
+	while (p1[i] == p2[i] && i < n - 1)
+		i++;
+	num = (unsigned char)p1[i] - (unsigned char)p2[i];
+	return (num);
 }

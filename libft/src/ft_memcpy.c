@@ -1,27 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   packer.c                                           :+:      :+:    :+:   */
+/*   ft_memcpy.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/08/12 12:01:59 by mbucci            #+#    #+#             */
-/*   Updated: 2023/08/14 17:48:03 by mbucci           ###   ########.fr       */
+/*   Created: 2021/09/01 12:34:59 by mbucci            #+#    #+#             */
+/*   Updated: 2021/09/15 00:20:36 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "woody.h"
-#include <sys/mman.h>
-#include <stdlib.h>
-//#include <elf.h>
-//#include <stdint.h>
+#include "libft.h"
 
-int pack(t_packed *file)
+void	*ft_memcpy(void *dst, const void *src, size_t n)
 {
-	(void)file;
-	// TODO: locate .text section
-	// TODO: add loader
-	// TODO: encrypt .text section
+	const unsigned char	*p_src;
+	unsigned char		*p_dst;
 
-	return 0;
+	if (src == NULL && dst == NULL)
+		return (NULL);
+	p_src = (unsigned char *)src;
+	p_dst = (unsigned char *)dst;
+	while (n-- > 0)
+		*p_dst++ = *p_src++;
+	return (dst);
 }
