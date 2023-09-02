@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/12 02:00:30 by mbucci            #+#    #+#             */
-/*   Updated: 2023/09/02 02:38:37 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/09/02 15:07:13 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,10 +25,10 @@
 
 typedef struct s_woody
 {
-	int				fd;
-	char 			*key;
-	const void		*base;
-	unsigned long	size;
+	int					fd;
+	char 				*key;
+	const Elf64_Ehdr	*base;
+	unsigned long		size;
 }	t_woody;
 
 /* elf64.c */

@@ -6,7 +6,7 @@ OBJDIR		=	./obj/
 INCLUDE		=	./include/
 
 SRC			=	main.c		\
-				elf64.c		\
+				woody.c		\
 				crypto.c	\
 				utils.c		\
 
