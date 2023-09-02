@@ -23,10 +23,10 @@ $(NAME):		$(OBJDIR) $(OBJ)
 				$(CXX) $(CXXFLAGS) $(OBJ) -Llibft -lft -o $(NAME)
 
 clean:
-				rm -rf $(OBJDIR)
+				rm -rf $(OBJDIR) woody
 
 fclean:			clean
-				rm -rf $(NAME) woody
+				rm -rf $(NAME)
 				make -C libft/ fclean
 
 re:				fclean all
