@@ -1,13 +1,13 @@
 NAME		=	woody_woodpacker
 CXX			=	gcc
-CXXFLAGS	=	-Wall -Wextra -Werror -I $(INCLUDE) -I libft/includes/
+CXXFLAGS	=	-Wall -Wextra -Werror -I $(INCLUDE) -I libft/includes/ -g #-fsanitize=address
 SRCDIR		=	./src/
 OBJDIR		=	./obj/
 INCLUDE		=	./include/
 
 SRC			=	main.c		\
-				parser.c	\
-				packer.c	\
+				elf64.c		\
+				crypto.c	\
 				utils.c		\
 
 OBJ			=	${addprefix $(OBJDIR), $(SRC:%.c=%.o)}

@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/02 13:51:07 by mbucci            #+#    #+#             */
-/*   Updated: 2023/07/01 22:43:31 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/08/29 23:29:05 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ char	*ft_strnstr(const char *haystack, const char *needle, size_t len);
 char	*ft_strrchr(const char *s, int c);
 char	*ft_strtrim(char const *s1, char const *set);
 char	*ft_substr(char const *s, unsigned int start, size_t len);
+void	ft_swap(char *s1, char *s2);
 int		ft_tolower(int c);
 int		ft_toupper(int c);
 
