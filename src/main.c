@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/12 01:51:33 by mbucci            #+#    #+#             */
-/*   Updated: 2023/09/02 01:38:56 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/09/02 02:37:19 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ static int check_arg(const char *filename)
 	if (base_ptr == MAP_FAILED)
 		return write_error(NULL);
 
-	// TODO: init woody struct
+	t_woody context = {-1, NULL, base_ptr, fsize};
 	int err = 1;
 
 	// check architecture
@@ -65,7 +65,7 @@ static int check_arg(const char *filename)
 		write_error(EXEC_ERR);
 
 	// do the thing
-	else if (!woody(base_ptr, fsize))
+	else if (!woody(&context))
 		err = 0;
 
 	// unmap file

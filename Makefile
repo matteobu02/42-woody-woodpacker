@@ -26,7 +26,7 @@ clean:
 				rm -rf $(OBJDIR)
 
 fclean:			clean
-				rm -rf $(NAME)
+				rm -rf $(NAME) woody
 				make -C libft/ fclean
 
 re:				fclean all

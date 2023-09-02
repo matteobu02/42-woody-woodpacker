@@ -6,40 +6,63 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 13:49:18 by mbucci            #+#    #+#             */
-/*   Updated: 2023/09/02 01:57:32 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/09/02 14:31:07 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "woody.h"
 #include <elf.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 #include <stdio.h>
 
-static Elf64_Shdr *get_section(const Elf64_Ehdr *elf, const char *name)
+static int check_boundaries(const t_woody *context)
 {
-	Elf64_Shdr *sh_tab = (Elf64_Shdr *)((void*)elf + elf->e_shoff);
-	Elf64_Shdr *strtab = (sh_tab + elf->e_shstrndx);
+	Elf64_Ehdr *elf = (Elf64_Ehdr *)context->base;
 
+	if (   (elf->e_shoff + (sizeof(Elf64_Shdr) * elf->e_shnum) > context->size)
+		|| (elf->e_phoff + (sizeof(Elf64_Phdr) * elf->e_phnum) > context->size)
+		|| ((elf->e_phentsize * elf->e_phnum) > (sizeof(Elf64_Phdr) * elf->e_phnum))
+		|| ((elf->e_shentsize * elf->e_shnum) > (sizeof(Elf64_Shdr) * elf->e_shnum))
+		|| (elf->e_shoff + elf->e_shstrndx > context->size)
+	)
+		return 1;
+
+	Elf64_Shdr *sh_tab = (Elf64_Shdr *)((void*)elf + elf->e_shoff);
+	Elf64_Shdr *strtab = sh_tab + elf->e_shstrndx;
 	for (int i = 0; i < elf->e_shnum; ++i)
-	{
-		char *curr = (char *)((void*)elf + strtab->sh_offset + sh_tab[i].sh_name);
-		if (curr && !ft_strncmp(curr, name, ft_strlen(name)))
-			return &sh_tab[i];
-	}
-	return NULL;
+		if (strtab->sh_offset + sh_tab[i].sh_name > context->size)
+			return 1;
+
+	return 0;
 }
 
-int woody(const void *ptr, unsigned long fsize)
+//static Elf64_Shdr *get_section(const t_woody *context, const char *name)
+//{
+//	Elf64_Ehdr *elf = (Elf64_Ehdr *)context->base;
+//	Elf64_Shdr *sh_tab = (Elf64_Shdr *)((void*)elf + elf->e_shoff);
+//	Elf64_Shdr *strtab = sh_tab + elf->e_shstrndx;
+//
+//	for (int i = 0; i < elf->e_shnum; ++i)
+//	{
+//		char *curr = (char *)((void*)elf + strtab->sh_offset + sh_tab[i].sh_name);
+//		if (curr && !ft_strncmp(curr, name, ft_strlen(name)))
+//			return &sh_tab[i];
+//	}
+//	return NULL;
+//}
+
+int woody(t_woody *woody)
 {
-	const Elf64_Ehdr *elf = (const Elf64_Ehdr *)ptr;
-	if ((elf->e_shoff + (sizeof(Elf64_Shdr) * elf->e_shnum) > fsize)
-		|| (elf->e_phoff + (sizeof(Elf64_Phdr) * elf->e_phnum) > fsize)
-	)
+	//const Elf64_Ehdr *elf = (const Elf64_Ehdr *)woody->base;
+
+	if (check_boundaries(woody))
 		return write_error(CORRUPT_ERR);
 
-	if (!get_section(elf, ".shstrtab"))
-		return write_error(STRIPPED_ERR);
+	// create woody
+	if ((woody->fd = open("woody", (O_CREAT | O_WRONLY | O_TRUNC), 0755)) == -1)
+		return write_error(NULL);
 
 	// TODO: copy elf header
 
@@ -55,7 +78,7 @@ int woody(const void *ptr, unsigned long fsize)
 
 	// TODO: encrypt and copy .text section
 	// TODO: copy rest
-	// BONUS: remove symbols -> compression
+	// BONUS: remove .symtab, .strtab, .debug* -> compression/stripping
 
 	return 0;
 }
