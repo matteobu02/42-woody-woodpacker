@@ -50,10 +50,6 @@ _rc4:
 	mov [rsp + 8], rsi
 	mov [rsp + 16], rdx
 	mov DWORD [rsp + 24], ecx
-	mov edx, 256
-	xor rsi, rsi
-	lea rdi, [rsp + 36]
-	call _ft_memset
 	mov rcx, -1
 	lea r8, [rsp + 36]
 .state_init_loop:
@@ -144,15 +140,4 @@ _ft_swap:
 	mov dl, BYTE [rsi]
 	mov BYTE [rsi], al
 	mov BYTE [rdi], dl
-	ret
-
-_ft_memset:
-	mov rcx, -1
-.loop:
-	inc rcx
-	cmp ecx, edx
-	jnl .endfunc
-	mov BYTE [rdi + rcx], sil
-	jmp .loop
-.endfunc:
 	ret
