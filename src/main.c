@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/12 01:51:33 by mbucci            #+#    #+#             */
-/*   Updated: 2023/09/02 02:37:19 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/09/26 21:05:48 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,23 @@
 #include <elf.h>
 
 // BONUS: write function to decide what arch to handle
+
+char *generate_key(void)
+{
+	int fd = open(URANDOM, O_RDONLY);
+	if (fd == -1)
+		return NULL;
+
+	char *ret = (char *)malloc(sizeof(char) * KEY_LEN);
+
+	if (ret)
+	{
+		ft_bzero(ret, KEY_LEN);
+		read(fd, ret, KEY_LEN);
+	}
+
+	return ret;
+}
 
 static int check_arg(const char *filename)
 {
@@ -34,7 +51,7 @@ static int check_arg(const char *filename)
 	}
 
 	// load file into memory
-	const Elf64_Ehdr *base_ptr = (const Elf64_Ehdr *)mmap(NULL, fsize, PROT_READ, MAP_PRIVATE, fd, 0);
+	Elf64_Ehdr *base_ptr = (Elf64_Ehdr *)mmap(NULL, fsize, PROT_WRITE, MAP_PRIVATE, fd, 0);
 
 	// close fd cuz we don't need it anymore
 	close(fd);
@@ -43,7 +60,7 @@ static int check_arg(const char *filename)
 	if (base_ptr == MAP_FAILED)
 		return write_error(NULL);
 
-	t_woody context = {-1, NULL, base_ptr, fsize};
+	t_woody context = {NULL, base_ptr, fsize};
 	int err = 1;
 
 	// check architecture
