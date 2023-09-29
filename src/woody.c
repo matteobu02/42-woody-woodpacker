@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 13:49:18 by mbucci            #+#    #+#             */
-/*   Updated: 2023/09/29 15:10:50 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/09/29 15:56:03 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,9 +28,9 @@ Elf64_Addr g_decryptor_addr = 0;
 Elf64_Off g_parasite_off = 0;
 Elf64_Off g_decryptor_off = 0;
 
-int64_t g_parasite_size = 0;
-int64_t g_decryptor_size = 0;
-int64_t g_total_payload_size = 0;
+uint64_t g_parasite_size = 0;
+uint64_t g_decryptor_size = 0;
+uint64_t g_total_payload_size = 0;
 
 static int check_boundaries(const t_woody *context)
 {
@@ -116,7 +116,7 @@ static void patch_section_offsets(const Elf64_Ehdr *elf)
 
 //static void patch_payload_addr32(char *bytes, int32_t target, int32_t repl)
 //{
-//	for (int i = 0; i < g_parasite_size; ++i)
+//	for (uint32_t i = 0; i < g_parasite_size; ++i)
 //	{
 //		int32_t chunk = *(int32_t *)(bytes + i);
 //		if (!(chunk ^ target))
@@ -129,7 +129,7 @@ static void patch_section_offsets(const Elf64_Ehdr *elf)
 
 static void patch_payload_addr64(char *bytes, int64_t target, int64_t repl)
 {
-	for (int i = 0; i < g_parasite_size; ++i)
+	for (uint64_t i = 0; i < g_parasite_size; ++i)
 	{
 		int64_t chunk = *(int64_t *)(bytes + i);
 		if (!(chunk ^ target))
@@ -146,36 +146,6 @@ void print_key(const char *key)
 		dprintf(STDOUT_FILENO, "%02hhX", (int)key[i]);
 
 	dprintf(STDOUT_FILENO, "\n");
-}
-
-static void *get_payload(const char *path, int64_t *fsize)
-{
-	int payloadfd = -1;
-	if ((payloadfd = open(path, O_RDONLY)) == -1)
-		return NULL;
-
-	*fsize = lseek(payloadfd, 0, SEEK_END);
-	if (*fsize == -1)
-	{
-		close(payloadfd);
-		return NULL;
-	}
-
-	void *payload = malloc(*fsize);
-	if (payload)
-	{
-		lseek(payloadfd, 0, SEEK_SET);
-		int readbytes = read(payloadfd, payload, *fsize);
-		if (readbytes < 1)
-		{
-			free(payload);
-			payload = NULL;
-		}
-
-		close(payloadfd);
-	}
-
-	return payload;
 }
 
 int woody(t_woody *context)
@@ -199,20 +169,20 @@ int woody(t_woody *context)
 		payload_path = PAYLOAD_EXEC_PATH;
 
 	// get parasite
-	void *parasite = get_payload(payload_path, &g_parasite_size);
+	void *parasite = read_file(payload_path, &g_parasite_size);
 	if (!parasite)
 	{
 		free(context->key);
-		return write_error(NULL);
+		return 1;
 	}
 
 	// get decryptor
-	void *decryptor = get_payload(PAYLOAD_RC4_PATH, &g_decryptor_size);
+	void *decryptor = read_file(PAYLOAD_RC4_PATH, &g_decryptor_size);
 	if (!decryptor)
 	{
 		free(parasite);
 		free(context->key);
-		return write_error(NULL);
+		return 1;
 	}
 	g_total_payload_size = g_parasite_size + (sizeof(char) * KEY_LEN) + g_decryptor_size;
 

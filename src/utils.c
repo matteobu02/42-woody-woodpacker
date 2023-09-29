@@ -6,12 +6,12 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/12 12:04:44 by mbucci            #+#    #+#             */
-/*   Updated: 2023/09/02 01:58:34 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/09/29 16:00:45 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdio.h>
-#include <elf.h>
+#include <fcntl.h>
 #include "woody.h"
 
 int write_error(const char *msg)
@@ -22,4 +22,60 @@ int write_error(const char *msg)
 		fprintf(stderr, "Error: %s\n", msg);
 
 	return 1;
+}
+
+void *read_file(const char *path, uint64_t *fsize)
+{
+	int fd = -1;
+	if ((fd = open(path, O_RDONLY)) == -1)
+	{
+		write_error(NULL);
+		return NULL;
+	}
+
+	int64_t bytes;
+	bytes = lseek(fd, 0, SEEK_END);
+	if (bytes == -1)
+	{
+		write_error(NULL);
+		close(fd);
+		return NULL;
+	}
+
+	*fsize = bytes;
+	void *file = malloc(sizeof(char) * (*fsize));
+	if (file)
+	{
+		lseek(fd, 0, SEEK_SET);
+		bytes = read(fd, file, *fsize);
+		if (bytes == -1)
+		{
+			write_error(NULL);
+			free(file);
+			file = NULL;
+		}
+	}
+	else
+		write_error(NULL);
+
+	close(fd);
+
+	return file;
+}
+
+char *generate_key(void)
+{
+	int fd = open(URANDOM, O_RDONLY);
+	if (fd == -1)
+		return NULL;
+
+	char *ret = (char *)malloc(sizeof(char) * KEY_LEN);
+
+	if (ret)
+	{
+		ft_bzero(ret, KEY_LEN);
+		read(fd, ret, KEY_LEN);
+	}
+
+	return ret;
 }

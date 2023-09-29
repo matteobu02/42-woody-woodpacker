@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/12 02:00:30 by mbucci            #+#    #+#             */
-/*   Updated: 2023/09/26 22:42:22 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/09/29 15:54:41 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,11 +41,10 @@ typedef struct s_woody
 	unsigned long	size;
 }	t_woody;
 
-/* main.c */
-char *generate_key(void);
-
 /* woody.c */
 int woody(t_woody *woody);
 
 /* utils.c */
 int write_error(const char *msg);
+void *read_file(const char *path, uint64_t *fsize);
+char *generate_key(void);
