@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/12 01:51:33 by mbucci            #+#    #+#             */
-/*   Updated: 2023/09/29 15:53:53 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/09/29 16:03:21 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,29 +20,6 @@
 
 static int check_arg(const char *filename)
 {
-	//// open file
-	//int fd;
-	//if ((fd = open(filename, O_RDONLY)) == -1)
-	//	return write_error(NULL);
-
-	//// get file size in bytes with lseek
-	//long fsize = lseek(fd, 0, SEEK_END);
-	//if (fsize == -1)
-	//{
-	//	close(fd);
-	//	return write_error(NULL);
-	//}
-
-	//// load file into memory
-	//Elf64_Ehdr *base_ptr = (Elf64_Ehdr *)mmap(NULL, fsize, PROT_WRITE, MAP_PRIVATE, fd, 0);
-
-	//// close fd cuz we don't need it anymore
-	//close(fd);
-
-	//// check if mapping failed
-	//if (base_ptr == MAP_FAILED)
-	//	return write_error(NULL);
-
 	t_woody context = {NULL, NULL, 0};
 	int err = 1;
 
@@ -71,9 +48,6 @@ static int check_arg(const char *filename)
 	else if (!woody(&context))
 		err = 0;
 
-	// unmap file
-	//if (munmap((void *)context.base, fsize) == -1)
-	//	return write_error(NULL);
 	free((void *)context.base);
 
 	return err;
