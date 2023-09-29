@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 13:49:18 by mbucci            #+#    #+#             */
-/*   Updated: 2023/09/29 12:11:04 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/09/29 15:10:50 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,7 +99,7 @@ static Elf64_Off get_padding(const Elf64_Ehdr *elf)
 	return 0;
 }
 
-static void adjust_section_offsets(const Elf64_Ehdr *elf)
+static void patch_section_offsets(const Elf64_Ehdr *elf)
 {
 	const void *ptr = (void *)elf;
 	Elf64_Shdr *sh_tab = (Elf64_Shdr *)(ptr + elf->e_shoff);
@@ -114,7 +114,7 @@ static void adjust_section_offsets(const Elf64_Ehdr *elf)
 	}
 }
 
-//static void adjust_payload_addr32(char *bytes, int32_t target, int32_t repl)
+//static void patch_payload_addr32(char *bytes, int32_t target, int32_t repl)
 //{
 //	for (int i = 0; i < g_parasite_size; ++i)
 //	{
@@ -127,7 +127,7 @@ static void adjust_section_offsets(const Elf64_Ehdr *elf)
 //	}
 //}
 
-static void adjust_payload_addr64(char *bytes, int64_t target, int64_t repl)
+static void patch_payload_addr64(char *bytes, int64_t target, int64_t repl)
 {
 	for (int i = 0; i < g_parasite_size; ++i)
 	{
@@ -236,7 +236,7 @@ int woody(t_woody *context)
 		context->base->e_entry = g_parasite_off;//g_decryptor_off;
 
 	// patch parasite
-	adjust_payload_addr64(parasite, 0x4242424242424242, code_entry);
+	patch_payload_addr64(parasite, 0x4242424242424242, code_entry);
 
 	// patch decryptor
 	//Elf64_Addr keyaddr = g_decryptor_addr - KEY_LEN;
@@ -245,14 +245,14 @@ int woody(t_woody *context)
 	//printf("text addr: %ld\n", g_codeseg_addr);
 	//printf("text len: %ld\n", keyaddr - g_codeseg_addr);
 
-	//adjust_payload_addr32(decryptor, 0x42194219, KEY_LEN);
-	//adjust_payload_addr64(decryptor, 0x1942194219421942, keyaddr);
-	//adjust_payload_addr64(decryptor, 0x1919191919191919, keyaddr - g_codeseg_addr);
-	//adjust_payload_addr64(decryptor, 0x4242424242424242, g_codeseg_addr);
-	//adjust_payload_addr64(decryptor, 0x1919191919424242, g_parasite_addr);
+	//patch_payload_addr32(decryptor, 0x42194219, KEY_LEN);
+	//patch_payload_addr64(decryptor, 0x1942194219421942, keyaddr);
+	//patch_payload_addr64(decryptor, 0x1919191919191919, keyaddr - g_codeseg_addr);
+	//patch_payload_addr64(decryptor, 0x4242424242424242, g_codeseg_addr);
+	//patch_payload_addr64(decryptor, 0x1919191919424242, g_parasite_addr);
 
 	// patch code section header
-	adjust_section_offsets(context->base);
+	patch_section_offsets(context->base);
 
 	// inject parasite
 	void *inject_addr = (void *)context->base + g_parasite_off;
