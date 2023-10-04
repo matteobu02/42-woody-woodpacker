@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 13:49:18 by mbucci            #+#    #+#             */
-/*   Updated: 2023/09/29 15:56:03 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/10/04 10:10:44 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,9 +25,11 @@ Elf64_Addr g_codeseg_addr = 0;
 Elf64_Addr g_parasite_addr = 0;
 Elf64_Addr g_decryptor_addr = 0;
 
+Elf64_Off g_codeseg_off = 0;
 Elf64_Off g_parasite_off = 0;
 Elf64_Off g_decryptor_off = 0;
 
+uint64_t g_codeseg_size = 0;
 uint64_t g_parasite_size = 0;
 uint64_t g_decryptor_size = 0;
 uint64_t g_total_payload_size = 0;
@@ -57,11 +59,11 @@ static int check_boundaries(const t_woody *context)
 static int check_exec(const void *ptr)
 {
 	Elf64_Ehdr *elf = (Elf64_Ehdr *)ptr;
-	Elf64_Phdr *phtab = (Elf64_Phdr *)(ptr + elf->e_phoff);
+	Elf64_Phdr *ph_tab = (Elf64_Phdr *)(ptr + elf->e_phoff);
 
 	for (uint16_t i = 0; i < elf->e_phnum; ++i)
 	{
-		if (phtab[i].p_type == PT_INTERP)
+		if (ph_tab[i].p_type == PT_INTERP)
 			return 0;
 	}
 
@@ -81,9 +83,11 @@ static Elf64_Off get_padding(const Elf64_Ehdr *elf)
 			found_code = 1;
 
 			g_codeseg_addr = ph_tab[i].p_vaddr;
+			g_codeseg_off = ph_tab[i].p_offset;
+			g_codeseg_size = ph_tab[i].p_filesz;
 
-			g_parasite_off = ph_tab[i].p_offset + ph_tab[i].p_filesz;
-			g_parasite_addr = ph_tab[i].p_vaddr + ph_tab[i].p_filesz;
+			g_parasite_off = g_codeseg_off + ph_tab[i].p_filesz;
+			g_parasite_addr = g_codeseg_addr + ph_tab[i].p_filesz;
 
 			g_decryptor_off = g_parasite_off + g_parasite_size;
 			g_decryptor_addr = g_parasite_addr + g_parasite_size;
@@ -114,18 +118,18 @@ static void patch_section_offsets(const Elf64_Ehdr *elf)
 	}
 }
 
-//static void patch_payload_addr32(char *bytes, int32_t target, int32_t repl)
-//{
-//	for (uint32_t i = 0; i < g_parasite_size; ++i)
-//	{
-//		int32_t chunk = *(int32_t *)(bytes + i);
-//		if (!(chunk ^ target))
-//		{
-//			*(int32_t *)(bytes + i) = repl;
-//			return;
-//		}
-//	}
-//}
+static void patch_payload_addr32(char *bytes, int32_t target, int32_t repl)
+{
+	for (uint32_t i = 0; i < g_parasite_size; ++i)
+	{
+		int32_t chunk = *(int32_t *)(bytes + i);
+		if (!(chunk ^ target))
+		{
+			*(int32_t *)(bytes + i) = repl;
+			return;
+		}
+	}
+}
 
 static void patch_payload_addr64(char *bytes, int64_t target, int64_t repl)
 {
@@ -201,25 +205,19 @@ int woody(t_woody *context)
 
 	// set entrypoint to start of payload
 	if (context->base->e_type == ET_EXEC)
-		context->base->e_entry = g_parasite_addr;//g_decryptor_addr;
+		context->base->e_entry = g_parasite_addr;
 	else
-		context->base->e_entry = g_parasite_off;//g_decryptor_off;
+		context->base->e_entry = g_parasite_off;
 
 	// patch parasite
 	patch_payload_addr64(parasite, 0x4242424242424242, code_entry);
 
 	// patch decryptor
-	//Elf64_Addr keyaddr = g_decryptor_addr - KEY_LEN;
-
-	//printf("keyaddr: %ld\n", keyaddr);
-	//printf("text addr: %ld\n", g_codeseg_addr);
-	//printf("text len: %ld\n", keyaddr - g_codeseg_addr);
-
-	//patch_payload_addr32(decryptor, 0x42194219, KEY_LEN);
-	//patch_payload_addr64(decryptor, 0x1942194219421942, keyaddr);
-	//patch_payload_addr64(decryptor, 0x1919191919191919, keyaddr - g_codeseg_addr);
-	//patch_payload_addr64(decryptor, 0x4242424242424242, g_codeseg_addr);
-	//patch_payload_addr64(decryptor, 0x1919191919424242, g_parasite_addr);
+	patch_payload_addr32(decryptor, 0x42194219, KEY_LEN); // key length
+	patch_payload_addr64(decryptor, 0x1942194219421942, g_decryptor_addr + g_decryptor_size); // key ptr
+	patch_payload_addr64(decryptor, 0x1919191919191919, g_codeseg_size + g_parasite_size); // text length
+	patch_payload_addr64(decryptor, 0x4242424242424242, g_codeseg_addr); // text ptr
+	patch_payload_addr64(decryptor, 0x4242424219191919, g_parasite_off); // jmp addr
 
 	// patch code section header
 	patch_section_offsets(context->base);
@@ -228,19 +226,19 @@ int woody(t_woody *context)
 	void *inject_addr = (void *)context->base + g_parasite_off;
 	ft_memmove(inject_addr, parasite, g_parasite_size);
 
-	// inject key
-	inject_addr += g_parasite_size;
-	ft_memmove(inject_addr, context->key, KEY_LEN);
-
 	// inject decryptor
-	inject_addr += KEY_LEN;
+	inject_addr += g_parasite_size;
 	ft_memmove(inject_addr, decryptor, g_decryptor_size);
+
+	// inject key
+	inject_addr += g_decryptor_size;
+	ft_memmove(inject_addr, context->key, KEY_LEN);
 
 	free(parasite);
 	free(decryptor);
 
 	// encrypt code segment
-	//_rc4((void *)context->base + 0, 0, context->key, KEY_LEN);
+	//_rc4((void *)context->base + g_codeseg_off, g_codeseg_size + g_parasite_size, context->key, KEY_LEN);
 
 	// create woody
 	int woody_fd = -1;
