@@ -5,6 +5,9 @@ global _start
 section .text
 
 start:
+	push rbp
+	mov rbp, rsp
+
 	push rax
 	push rcx
 	push rdx
@@ -31,7 +34,8 @@ start:
 	pop rcx
 	pop rax
 
-	mov rbx, 0x1919191919424242	; parasite ptr
+	pop rbp
+	mov rbx, 0x4242424219191919	; parasite ptr
 	jmp rbx
 
 _rc4:
@@ -134,7 +138,6 @@ _rc4:
 	pop rbp
 .endfunc:
 	ret
-
 _ft_swap:
 	mov al, BYTE [rdi]
 	mov dl, BYTE [rsi]

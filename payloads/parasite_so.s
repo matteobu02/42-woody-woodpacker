@@ -49,18 +49,18 @@ _start:
 	push r12
 	
 	jmp	parasite
-	mystr:	db	"....WOODY....",10
-	filepath:   db  "/proc/self/maps",0          ; 16 bytes
+	mystr: db "....WOODY....",10		; 14 bytes
+	filepath: db "/proc/self/maps",0	; 16 bytes
 
 
 parasite:
 
 	; Print our message
-	mov rax, 1
-	mov rdi, rax					; File descriptor - 0x1 (STDOUT)
+	mov rax, SYS_WRITE
+	mov rdi, STDOUT					; File descriptor - 0x1 (STDOUT)
 	lea rsi, [rel mystr]			; Addresses the label relative to RIP (Instruction Pointer), i.e. 
 									; dynamically identifying the address of the 'message' label.
-	mov rdx, 14						; message size = 57 bytes (0x39)
+	mov rdx, 14
 	syscall					
 
 
