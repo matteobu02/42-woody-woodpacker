@@ -5,9 +5,6 @@ global _start
 section .text
 
 start:
-	push rbp
-	mov rbp, rsp
-
 	push rax
 	push rcx
 	push rdx
@@ -18,10 +15,16 @@ start:
 	push r10
 	push r11
 
-	mov ecx, 0x42194219			; key size
-	mov rdx, 0x1942194219421942	; key ptr
-	mov rsi, 0x1919191919191919	; text size
-	mov rdi, 0x4242424242424242	; text ptr
+	; key size
+	mov ecx, 0x42194219
+	; key ptr
+	lea rdx, [rel $]
+	add rdx, 0x55555555
+	; text size
+	mov rsi, 0x1919191919191919
+	; text ptr
+	;lea rdi, [rel $$]
+	mov rdi, 0x4242424242424242
 	call _rc4
 
 	pop r11
@@ -34,7 +37,6 @@ start:
 	pop rcx
 	pop rax
 
-	pop rbp
 	mov rbx, 0x4242424219191919	; parasite ptr
 	jmp rbx
 

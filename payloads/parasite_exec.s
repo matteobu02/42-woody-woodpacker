@@ -31,9 +31,5 @@ parasite:
 	pop rcx
 	pop rax
 
-	;xor rdi, rdi
-	;mov rax, 60
-	;syscall
-
 	mov	rbx, 0x4242424242424242
 	jmp	rbx
