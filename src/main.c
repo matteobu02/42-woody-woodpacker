@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/12 01:51:33 by mbucci            #+#    #+#             */
-/*   Updated: 2023/09/29 17:23:46 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/10/10 17:00:33 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +18,13 @@
 
 // BONUS: write function to decide what arch to handle
 
-static int check_arg(const char *filename)
+static int check_arg(const char *filename, const char *key)
 {
-	t_woody context = {NULL, NULL, 0};
+	t_woody context = {(key != NULL), NULL, NULL, 0};
+
+	if (key && !(context.key = ft_strdup(key)))
+		return write_error(NULL);
+
 	int err = 1;
 
 	if (!(context.base = (Elf64_Ehdr *)read_file(filename, &context.size)))
@@ -55,10 +59,8 @@ static int check_arg(const char *filename)
 
 int main(int ac, char **av)
 {
-	if (ac != 2)
+	if (ac != 2 && ac != 3)
 		return write_error(USAGE_ERR);
 
-	// BONUS: handle parameter key
-
-	return check_arg(av[1]);
+	return check_arg(av[1], (ac == 3 ? av[2] : NULL) );
 }

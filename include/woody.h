@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/12 02:00:30 by mbucci            #+#    #+#             */
-/*   Updated: 2023/10/10 01:34:31 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/10/10 17:36:08 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,7 @@
 #define KEY_LEN 16
 
 /* ERRORS */
-#define USAGE_ERR "supply a 64bit elf biary please"
-#define STRIPPED_ERR "file is stripped"
+#define USAGE_ERR "usage: ./woody_woodpacker <path/to/binary> <key>"
 #define CORRUPT_ERR "file is corrupted"
 #define ELF_ERR "not an elf file"
 #define FORMAT_ERR "file format is not supported"
@@ -36,6 +35,7 @@
 
 typedef struct s_woody
 {
+	int				keyisparam;
 	char 			*key;
 	Elf64_Ehdr		*base;
 	unsigned long	size;

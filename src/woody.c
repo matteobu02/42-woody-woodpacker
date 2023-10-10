@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 13:49:18 by mbucci            #+#    #+#             */
-/*   Updated: 2023/10/10 14:31:41 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/10/10 17:14:28 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,9 +160,8 @@ int woody(t_woody *context)
 	if (check_exec((void *)context->base))
 		return write_error(EXEC_ERR);
 
-	// BONUS: handle paramterized key
-	// generate key
-	if (!(context->key = generate_key()))
+	// generate key if need be
+	if (!context->keyisparam && !(context->key = generate_key()))
 		return write_error(NULL);
 
 	// get injection handler
@@ -189,10 +188,11 @@ int woody(t_woody *context)
 		return 1;
 	}
 
+	uint64_t keysz = (context->keyisparam ? ft_strlen(context->key) : KEY_LEN);
 	g_total_payload_size = g_parasite_size
 						+ g_decryptor_size
 						+ g_handler_size
-						+ (sizeof(char) * KEY_LEN);
+						+ (sizeof(char) * keysz);
 
 	// get padding
 	Elf64_Off padding = get_padding(context->base);
@@ -210,8 +210,11 @@ int woody(t_woody *context)
 		return write_error(NULL);
 	}
 
-	// time to print the key
-	print_key(context->key);
+	if (!context->keyisparam)
+	{
+		// time to print the key
+		print_key(context->key);
+	}
 
 	// save old entrypoint
 	Elf64_Addr code_entry = context->base->e_entry;
@@ -239,10 +242,10 @@ int woody(t_woody *context)
 
 	// inject key
 	inject_addr += g_handler_size;
-	ft_memmove(inject_addr, context->key, KEY_LEN);
+	ft_memmove(inject_addr, context->key, keysz);
 
 	// patch handler
-	patch_payload_addr32((void *)context->base + g_handler_off, g_handler_size, 0x55555555, KEY_LEN); // key size
+	patch_payload_addr32((void *)context->base + g_handler_off, g_handler_size, 0x55555555, keysz); // key size
 	patch_payload_addr64((void *)context->base + g_handler_off, g_handler_size, 0x4444444444444444, g_handler_off + g_handler_size); // offset to key
 	patch_payload_addr64((void *)context->base + g_handler_off, g_handler_size, 0x1942194219421942, g_codeseg_size + g_parasite_size); // text size
 	patch_payload_addr64((void *)context->base + g_handler_off, g_handler_size, 0x2222222222222222, g_codeseg_off); // text offset
@@ -262,7 +265,7 @@ int woody(t_woody *context)
 	patch_payload_addr64((void *)context->base + g_handler_off, g_handler_size, 0x3333333333333333, code_entry);
 
 	// encrypt code segment
-	_rc4((void *)context->base + g_codeseg_off, g_codeseg_size + g_parasite_size, context->key, KEY_LEN);
+	_rc4((void *)context->base + g_codeseg_off, g_codeseg_size + g_parasite_size, context->key, keysz);
 
 	free_payloads(context->key, handler, parasite, decryptor);
 
