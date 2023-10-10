@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/12 01:51:33 by mbucci            #+#    #+#             */
-/*   Updated: 2023/10/10 17:00:33 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/10/10 17:46:08 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,5 +62,5 @@ int main(int ac, char **av)
 	if (ac != 2 && ac != 3)
 		return write_error(USAGE_ERR);
 
-	return check_arg(av[1], (ac == 3 ? av[2] : NULL) );
+	return check_arg(av[1], ( (ac == 3 && ft_strlen(av[2])) ? av[2] : NULL) );
 }

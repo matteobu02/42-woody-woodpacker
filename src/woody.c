@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 13:49:18 by mbucci            #+#    #+#             */
-/*   Updated: 2023/10/10 17:14:28 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/10/10 17:52:01 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,7 +161,7 @@ int woody(t_woody *context)
 		return write_error(EXEC_ERR);
 
 	// generate key if need be
-	if (!context->keyisparam && !(context->key = generate_key()))
+	if (!context->keyisparam && !(context->key = generate_key(DFLT_KEY_LEN)))
 		return write_error(NULL);
 
 	// get injection handler
@@ -188,7 +188,7 @@ int woody(t_woody *context)
 		return 1;
 	}
 
-	uint64_t keysz = (context->keyisparam ? ft_strlen(context->key) : KEY_LEN);
+	uint64_t keysz = (context->keyisparam ? ft_strlen(context->key) : DFLT_KEY_LEN);
 	g_total_payload_size = g_parasite_size
 						+ g_decryptor_size
 						+ g_handler_size
@@ -213,7 +213,7 @@ int woody(t_woody *context)
 	if (!context->keyisparam)
 	{
 		// time to print the key
-		print_key(context->key);
+		print_key(context->key, DFLT_KEY_LEN);
 	}
 
 	// save old entrypoint

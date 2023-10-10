@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/12 02:00:30 by mbucci            #+#    #+#             */
-/*   Updated: 2023/10/10 17:36:08 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/10/10 17:52:29 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@
 #define PARASITE_PATH "./payloads/parasite"
 #define DECRYPTOR_PATH "./payloads/decryptor"
 #define URANDOM "/dev/urandom"
-#define KEY_LEN 16
+#define DFLT_KEY_LEN 16
 
 /* ERRORS */
 #define USAGE_ERR "usage: ./woody_woodpacker <path/to/binary> <key>"
@@ -47,6 +47,6 @@ int woody(t_woody *woody);
 /* utils.c */
 int write_error(const char *msg);
 void *read_file(const char *path, uint64_t *fsize);
-char *generate_key(void);
-void print_key(const char *key);
+char *generate_key(uint64_t keysz);
+void print_key(const char *key, uint64_t keysz);
 void free_payloads(char *k, void *p1, void *p2, void *p3);

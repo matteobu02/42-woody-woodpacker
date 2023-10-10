@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/12 12:04:44 by mbucci            #+#    #+#             */
-/*   Updated: 2023/10/08 17:24:01 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/10/10 17:53:07 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,26 +63,26 @@ void *read_file(const char *path, uint64_t *fsize)
 	return file;
 }
 
-char *generate_key(void)
+char *generate_key(uint64_t keysz)
 {
 	int fd = open(URANDOM, O_RDONLY);
 	if (fd == -1)
 		return NULL;
 
-	char *ret = (char *)malloc(sizeof(char) * KEY_LEN);
+	char *ret = (char *)malloc(sizeof(char) * keysz);
 
 	if (ret)
 	{
-		ft_bzero(ret, KEY_LEN);
-		read(fd, ret, KEY_LEN);
+		ft_bzero(ret, keysz);
+		read(fd, ret, keysz);
 	}
 
 	return ret;
 }
 
-void print_key(const char *key)
+void print_key(const char *key, uint64_t keysz)
 {
-	for (int i = 0; i < KEY_LEN; ++i)
+	for (uint64_t i = 0; i < keysz; ++i)
 		dprintf(STDOUT_FILENO, "%02hhX", (int)key[i]);
 
 	dprintf(STDOUT_FILENO, "\n");
