@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/12 02:00:30 by mbucci            #+#    #+#             */
-/*   Updated: 2023/10/07 18:41:26 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/10/10 01:34:31 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,9 @@
 
 /* CONSTANTS */
 #define PATCH "woody"
-#define PAYLOAD_SO_PATH "./payloads/parasite_so"
-#define PAYLOAD_EXEC_PATH "./payloads/parasite_exec"
-#define PAYLOAD_RC4_PATH "./payloads/decryptor"
+#define HANDLER_PATH "./payloads/handler"
+#define PARASITE_PATH "./payloads/parasite"
+#define DECRYPTOR_PATH "./payloads/decryptor"
 #define URANDOM "/dev/urandom"
 #define KEY_LEN 16
 
@@ -48,3 +48,5 @@ int woody(t_woody *woody);
 int write_error(const char *msg);
 void *read_file(const char *path, uint64_t *fsize);
 char *generate_key(void);
+void print_key(const char *key);
+void free_payloads(char *k, void *p1, void *p2, void *p3);

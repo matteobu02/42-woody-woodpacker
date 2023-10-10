@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #define KEY "FS3L23KVFGTSW"
+#define TEXT "this is my text"
 
 extern	void _rc4(void *bytes, long length, const char *key, int keysize);
 
@@ -50,13 +51,13 @@ void printtext(char *bytes, long size)
 
 int main(void)
 {
-	char *msg1 = strdup("this is my text");
-	char *msg2 = strdup("this is my text");
+	char *msg1 = strdup(TEXT);
+	char *msg2 = strdup(TEXT);
 
 	if (!msg1 || !msg2)
 		return 1;
 
-	long length = strlen(msg1);
+	long length = strlen(TEXT);
 	printf("key: %s\n", KEY);
 	printf("original: %s\n\n", msg1);
 

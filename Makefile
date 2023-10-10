@@ -10,6 +10,7 @@ SRCDIR		=	./src/
 OBJDIR		=	./obj/
 INCLUDE		=	./include/
 ENCRYPTION	=	./encryption/
+LIBFT		=	./libft/libft.a
 
 SRC			=	main.c	\
 				woody.c	\
@@ -20,9 +21,9 @@ SRC_CRYPT	=	rc4.s	\
 OBJ			=	${addprefix $(OBJDIR), $(SRC:%.c=%.o)}
 OBJ			+=	${addprefix $(OBJDIR), $(SRC_CRYPT:%.s=%.o)}
 
-PAYLOAD_SO	=	./payloads/parasite_so.s
-PAYLOAD_EXE	=	./payloads/parasite_exec.s
-PAYLOAD_RC4	=	./payloads/decryptor.s
+HANDLER		=	./payloads/handler.s
+PARASITE	=	./payloads/parasite.s
+DECRYPTOR	=	./encryption/rc4.s
 
 
 # ===== #
@@ -30,12 +31,11 @@ PAYLOAD_RC4	=	./payloads/decryptor.s
 
 all:			$(NAME)
 
-$(NAME):		$(OBJDIR) $(OBJ) $(PAYLOAD_SO) $(PAYLOAD_EXE) $(PAYLOAD_RC4)
-				make -C libft/
+$(NAME):		$(LIBFT) $(OBJDIR) $(OBJ) $(HANDLER) $(PARASITE) $(DECRYPTOR)
 
-				$(ASM) $(ASMFLAGS) bin $(PAYLOAD_SO)
-				$(ASM) $(ASMFLAGS) bin $(PAYLOAD_EXE)
-				$(ASM) $(ASMFLAGS) bin $(PAYLOAD_RC4)
+				$(ASM) $(ASMFLAGS) bin $(HANDLER)
+				$(ASM) $(ASMFLAGS) bin $(PARASITE)
+				$(ASM) $(ASMFLAGS) bin $(DECRYPTOR) -o ./payloads/decryptor
 
 				$(CXX) $(CXXFLAGS) $(OBJ) -Llibft -lft -z noexecstack -o $(NAME)
 
@@ -43,10 +43,13 @@ clean:
 				rm -rf $(OBJDIR) woody
 
 fclean:			clean
-				rm -rf $(NAME) ./payloads/parasite_so ./payloads/parasite_exec ./payloads/decryptor
+				rm -rf $(NAME) ./payloads/handler ./payloads/parasite ./payloads/decryptor
 				make -C libft/ fclean
 
 re:				fclean all
+
+$(LIBFT):
+				make -C libft/
 
 $(OBJDIR)%.o:	$(SRCDIR)%.c
 				$(CXX) $(CXXFLAGS) -c $< -o $@

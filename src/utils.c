@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/12 12:04:44 by mbucci            #+#    #+#             */
-/*   Updated: 2023/10/07 18:32:38 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/10/08 17:24:01 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,4 +78,20 @@ char *generate_key(void)
 	}
 
 	return ret;
+}
+
+void print_key(const char *key)
+{
+	for (int i = 0; i < KEY_LEN; ++i)
+		dprintf(STDOUT_FILENO, "%02hhX", (int)key[i]);
+
+	dprintf(STDOUT_FILENO, "\n");
+}
+
+void free_payloads(char *k, void *p1, void *p2, void *p3)
+{
+	free(k);
+	free(p1);
+	free(p2);
+	free(p3);
 }

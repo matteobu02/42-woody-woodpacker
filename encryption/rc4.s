@@ -32,7 +32,7 @@ _rc4:
 	inc rcx
 	cmp rcx, 256
 	jnl .ready_state_mix
-	
+
 	mov BYTE [r8 + rcx], cl
 
 	jmp .state_init_loop
