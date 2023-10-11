@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 13:49:18 by mbucci            #+#    #+#             */
-/*   Updated: 2023/10/10 17:52:01 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/10/11 01:15:37 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,7 +104,7 @@ static Elf64_Off get_padding(const Elf64_Ehdr *elf)
 			ph_tab[i].p_flags |= PF_W;
 		}
 
-		if (found_code && ph_tab[i].p_type == PT_LOAD && ph_tab[i].p_flags == (PF_R | PF_W)) 
+		else if (found_code && ph_tab[i].p_type == PT_LOAD)
 			return (ph_tab[i].p_offset - g_parasite_off);
 	}
 
@@ -198,6 +198,7 @@ int woody(t_woody *context)
 	Elf64_Off padding = get_padding(context->base);
 	if (padding < (Elf64_Off)g_total_payload_size)
 	{
+		// TODO: create new section to make it work regardless
 		free_payloads(context->key, handler, parasite, decryptor);
 		return write_error(PADD_ERR);
 	}
