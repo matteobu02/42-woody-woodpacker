@@ -5,7 +5,7 @@
 #define KEY "FS3L23KVFGTSW"
 #define TEXT "this is my text"
 
-extern	void _rc4(void *bytes, long length, const char *key, int keysize);
+extern	void _rc4_32(void *bytes, long length, const char *key, int keysize);
 
 void ft_swap(char *s1, char *s2)
 {
@@ -23,7 +23,8 @@ void rc4(char *bytes, long length, const char *key, int keysz)
 	int j = 0;
 	for (int i = 0; i < 256; ++i)
 	{
-		j = (j + state[i] + key[i % keysz]) % 256;
+		j = (j + state[i] + key[i % keysz]) & 255;
+		printf("j[%d]: %d\n", i, j);
 		ft_swap((char *)&state[i], (char *)&state[j]);
 	}
 
@@ -62,19 +63,19 @@ int main(void)
 	printf("original: %s\n\n", msg1);
 
 	rc4(msg1, length, KEY, strlen(KEY));
-	_rc4(msg2, length, KEY, strlen(KEY));
+	_rc4_32(msg2, length, KEY, strlen(KEY));
 
-	printf("c:   ");
-	printtext(msg1, length);
+	//printf("c:   ");
+	//printtext(msg1, length);
 
-	printf("asm: ");
-	printtext(msg2, length);
+	//printf("asm: ");
+	//printtext(msg2, length);
 
-	rc4(msg1, length, KEY, strlen(KEY));
-	_rc4(msg2, length, KEY, strlen(KEY));
+	//rc4(msg1, length, KEY, strlen(KEY));
+	//_rc4_32(msg2, length, KEY, strlen(KEY));
 
-	printf("\ndecrypted: %s\n", msg2);
-	printf("decryption: %s\n", (!memcmp(msg1, msg2, length) ? "OK" : "KO"));
+	//printf("\ndecrypted: %s\n", msg2);
+	//printf("decryption: %s\n", (!memcmp(msg1, msg2, length) ? "OK" : "KO"));
 
 	free(msg1);
 	free(msg2);
