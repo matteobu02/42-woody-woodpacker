@@ -1,10 +1,10 @@
 NAME		=	test
 CXX			=	gcc
-CXXFLAGS	=	-m32 -Wall -Wextra -Werror -g
-ASM			=	nasm -felf32 -g
+CXXFLAGS	=	-Wall -Wextra -Werror
+ASM			=	nasm -felf64
 OBJDIR		=	./obj/
 
-ASM_SRC		=	rc4_32.s
+ASM_SRC		=	rc4.s
 C_SRC		=	test.c
 
 OBJ			=	${addprefix $(OBJDIR), $(C_SRC:%.c=%.o)}

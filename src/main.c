@@ -6,7 +6,7 @@
 /*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/12 01:51:33 by mbucci            #+#    #+#             */
-/*   Updated: 2023/10/10 17:46:08 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/11/06 13:11:09 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,6 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <elf.h>
-
-// BONUS: write function to decide what arch to handle
 
 static int check_arg(const char *filename, const char *key)
 {
@@ -27,11 +25,12 @@ static int check_arg(const char *filename, const char *key)
 
 	int err = 1;
 
-	if (!(context.base = (Elf64_Ehdr *)read_file(filename, &context.size)))
+	if (!(context.base = read_file(filename, &context.size)))
 		return err;
 
 	// check architecture
-	const unsigned char *f_ident = context.base->e_ident;
+	Elf64_Ehdr *elf = (Elf64_Ehdr *)context.base;
+	const unsigned char *f_ident = elf->e_ident;
 	if (f_ident[EI_MAG0] != ELFMAG0
 		|| f_ident[EI_MAG1] != ELFMAG1
 		|| f_ident[EI_MAG2] != ELFMAG2
@@ -40,19 +39,22 @@ static int check_arg(const char *filename, const char *key)
 		write_error(ELF_ERR);
 
 	// check file class
-	// BONUS: adapt for 32 bits
-	else if (f_ident[EI_CLASS] != ELFCLASS64)
+	else if (f_ident[EI_CLASS] != ELFCLASS64 && f_ident[EI_CLASS] != ELFCLASS32)
 		write_error(FORMAT_ERR);
 
 	// check file type
-	else if (context.base->e_type != ET_EXEC && context.base->e_type != ET_DYN)
+	else if (elf->e_type != ET_EXEC && elf->e_type != ET_DYN)
 		write_error(EXEC_ERR);
 
-	// do the thing
-	else if (!woody(&context))
-		err = 0;
+	else // do the thing
+	{
+		if (f_ident[EI_CLASS] == ELFCLASS64)
+			err = woody_elf64(&context);
+		//else if (f_ident[EI_CLASS] == ELFCLASS32)
+		//	err = woody_elf32(&context);
+	}
 
-	free((void *)context.base);
+	free(context.base);
 
 	return err;
 }

@@ -13,7 +13,8 @@ ENCRYPTION	=	./encryption/
 LIBFT		=	./libft/libft.a
 
 SRC			=	main.c	\
-				woody.c	\
+				elf64.c	\
+				elf32.c	\
 				utils.c	\
 
 SRC_CRYPT	=	rc4.s	\
@@ -40,10 +41,10 @@ $(NAME):		$(LIBFT) $(OBJDIR) $(OBJ) $(HANDLER) $(PARASITE) $(DECRYPTOR)
 				$(CXX) $(CXXFLAGS) $(OBJ) -Llibft -lft -z noexecstack -o $(NAME)
 
 clean:
-				rm -rf $(OBJDIR) woody
+				rm -rf $(NAME) woody
 
 fclean:			clean
-				rm -rf $(NAME) ./payloads/handler ./payloads/parasite ./payloads/decryptor
+				rm -rf $(OBJDIR) ./payloads/handler ./payloads/parasite ./payloads/decryptor
 				make -C libft/ fclean
 
 re:				fclean all
