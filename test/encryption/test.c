@@ -1,11 +1,12 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #define KEY "FS3L23KVFGTSW"
 #define TEXT "this is my text"
 
-extern	void _rc4(void *bytes, long length, const char *key, int keysize);
+extern void _rc4_elf64(void *bytes, uint32_t length, const char *key, uint32_t keysize);
 
 void ft_swap(char *s1, char *s2)
 {
@@ -14,7 +15,7 @@ void ft_swap(char *s1, char *s2)
 	*s2 = tmp;
 }
 
-void rc4(char *bytes, long length, const char *key, int keysz)
+void rc4(char *bytes, uint32_t length, const char *key, uint32_t keysz)
 {
 	unsigned char state[256] = {0};
 	for (int i = 0; i < 256; ++i)
@@ -23,22 +24,22 @@ void rc4(char *bytes, long length, const char *key, int keysz)
 	int j = 0;
 	for (int i = 0; i < 256; ++i)
 	{
-		j = (j + state[i] + key[i % keysz]) % 256;
+		j = (j + state[i] + key[i % keysz]) & 255;
 		ft_swap((char *)&state[i], (char *)&state[j]);
 	}
 
 	j = 0;
 	int k = 0;
-	for (int i = 0; i < length; ++i)
+	for (uint32_t i = 0; i < length; ++i)
 	{
-		k = (k + 1) % 256;
-		j = (j + state[k]) % 256;
+		k = (k + 1) & 255;
+		j = (j + state[k]) & 255;
 
 		ft_swap((char *)&state[k], (char *)&state[j]);
 
-		int t = (state[k] + state[j]) % 256;
+		int t = (state[k] + state[j]) & 255;
 
-		bytes[i] = bytes[i] ^ state[t];
+		bytes[i] ^= state[t];
 	}
 }
 
@@ -57,12 +58,12 @@ int main(void)
 	if (!msg1 || !msg2)
 		return 1;
 
-	long length = strlen(TEXT);
+	uint32_t length = strlen(TEXT);
 	printf("key: %s\n", KEY);
 	printf("original: %s\n\n", msg1);
 
 	rc4(msg1, length, KEY, strlen(KEY));
-	_rc4(msg2, length, KEY, strlen(KEY));
+	_rc4_elf64(msg2, length, KEY, strlen(KEY));
 
 	printf("c:   ");
 	printtext(msg1, length);
@@ -71,7 +72,7 @@ int main(void)
 	printtext(msg2, length);
 
 	rc4(msg1, length, KEY, strlen(KEY));
-	_rc4(msg2, length, KEY, strlen(KEY));
+	_rc4_elf64(msg2, length, KEY, strlen(KEY));
 
 	printf("\ndecrypted: %s\n", msg2);
 	printf("decryption: %s\n", (!memcmp(msg1, msg2, length) ? "OK" : "KO"));

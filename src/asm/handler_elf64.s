@@ -68,52 +68,63 @@ isso:
 	ret
 
 get_base_addr:
-	; int open(const char *pathname, int flags)		
 	xor rax, rax
 	xor rdi, rdi
-	lea	rdi, [rel filepath] 	; pathname
-	xor rsi, rsi				; 0 for O_RDONLY macro
-	mov al, SYS_OPEN			; syscall number for open()
+
+	;
+	; int open(const char *pathname, int flags)
+	;
+
+	xor rsi, rsi				; == rsi = O_RDONLY
+	lea	rdi, [rel filepath]
+	mov rax, SYS_OPEN			; syscall number for open()
 	syscall
 
-    xor r10, r10                ; Zeroing out temporary registers
-    xor r8, r8
-    xor rdi, rdi
-    xor rbx, rbx
-    mov dil, al                 ; fd    : al
-    sub sp, ALLOC_SPACE         ; allocate space for /proc/<pid>/maps memory address string 
-                                ; (Max 16 chars from file | usually 12 chars 5567f9154000)
-    lea rsi, [rsp]              ; *buf  : get the content to be read on stack
-    xor rdx, rdx
-    mov dx, 1
+	; TODO: handle eax == -1
+
+	xor r10, r10				; Zeroing out temporary registers
+	xor r8, r8
+	xor rdi, rdi
+	xor rbx, rbx
+	xor rdx, rdx
+
+	sub sp, ALLOC_SPACE			; allocate space for /proc/<pid>/maps memory address string
+								; (Max 16 chars from file | usually 12 chars 5567f9154000)
+	;
+	; int read(int fd, void *buf, int n)
+	;
+
+	mov rdx, 1
+	lea rsi, [rsp]				; *buf  : get the content to be read on stack
+	mov edi, eax				; fd    : al
 
 read_characters:
-    xor rax, rax
-    syscall
+	xor rax, rax
+	syscall
 
-    cmp BYTE [rsp], '-'
-	je  done
+	cmp BYTE [rsp], '-'
+	je done
 	inc r10b
 	mov r8b, BYTE [rsp]
 
-    cmp r8b, 0x39
-    jle digit_found
+	cmp r8b, '9'
+	jle digit_found
 
 alphabet_found:
-    sub r8b, 0x57               ; R8 stores the extracted byte (0x62('b') - 0x57 = 0xb)
-    jmp load_into_rbx
+	sub r8b, 0x57				; R8 stores the extracted byte (0x62('b') - 0x57 = 0xb)
+	jmp load_into_rbx
 
 digit_found:
-    sub r8b, 0x30               ; r8 stores Extracted byte
+	sub r8b, '0'				; r8 stores Extracted byte
 
 load_into_rbx:
-	shl rbx, 0x4
-    or  rbx, r8
+	shl rbx, 4
+	or rbx, r8
 
 loop:
-    add rsp, 0x1                ; increment RSI to read character at next location
-    lea rsi, [rsp]
-    jmp read_characters
+	add rsp, 1					; increment RSI to read character at next location
+	lea rsi, [rsp]
+	jmp read_characters
 
 done:
 	sub sp, r10w				; subtract stack pointer by no. of chars (which are pushed on stack)

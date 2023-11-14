@@ -6,59 +6,67 @@ ASMFLAGS	=	-f
 CXX			=	gcc
 CXXFLAGS	=	-Wall -Wextra -Werror -Ofast -I $(INCLUDE) -I libft/includes/ -g #-fsanitize=address
 
-SRCDIR		=	./src/
+SRCDIR		=	./src
+C_SRCDIR	=	$(SRCDIR)/c/
+ASM_SRCDIR	=	$(SRCDIR)/asm/
 OBJDIR		=	./obj/
 INCLUDE		=	./include/
-ENCRYPTION	=	./encryption/
+PAYLOADDIR	=	./payloads/
 LIBFT		=	./libft/libft.a
 
-SRC			=	main.c	\
+C_SRC		=	main.c	\
 				elf64.c	\
 				elf32.c	\
 				utils.c	\
 
-SRC_CRYPT	=	rc4.s	\
+CRYPT		=	rc4_elf64.s
 
-OBJ			=	${addprefix $(OBJDIR), $(SRC:%.c=%.o)}
-OBJ			+=	${addprefix $(OBJDIR), $(SRC_CRYPT:%.s=%.o)}
+OBJ			=	${addprefix $(OBJDIR), $(C_SRC:%.c=%.o)}
+OBJ			+=	${addprefix $(OBJDIR), $(CRYPT:%.s=%.o)}
 
-HANDLER		=	./payloads/handler.s
-PARASITE	=	./payloads/parasite.s
-DECRYPTOR	=	./encryption/rc4.s
+ASM_SRC		=	handler_elf64.s		\
+				parasite_elf64.s	\
+				rc4_elf64.s			\
+				handler_elf32.s		\
+				parasite_elf32.s	\
+				rc4_elf32.s			\
+
+PAYLOADS	=	${addprefix $(PAYLOADDIR), $(ASM_SRC:%.s=%.bin)}
 
 
 # ===== #
 
 
-all:			$(NAME)
+all:				$(NAME)
 
-$(NAME):		$(LIBFT) $(OBJDIR) $(OBJ) $(HANDLER) $(PARASITE) $(DECRYPTOR)
-
-				$(ASM) $(ASMFLAGS) bin $(HANDLER)
-				$(ASM) $(ASMFLAGS) bin $(PARASITE)
-				$(ASM) $(ASMFLAGS) bin $(DECRYPTOR) -o ./payloads/decryptor
-
-				$(CXX) $(CXXFLAGS) $(OBJ) -Llibft -lft -z noexecstack -o $(NAME)
+$(NAME):			$(LIBFT) $(OBJDIR) $(OBJ) $(PAYLOADDIR) $(PAYLOADS)
+					$(CXX) $(CXXFLAGS) $(OBJ) -Llibft -lft -z noexecstack -o $(NAME)
 
 clean:
-				rm -rf $(NAME) woody
+					rm -rf $(NAME) woody
 
-fclean:			clean
-				rm -rf $(OBJDIR) ./payloads/handler ./payloads/parasite ./payloads/decryptor
-				make -C libft/ fclean
+fclean:				clean
+					rm -rf $(OBJDIR) $(PAYLOADDIR)
+					make -C libft/ fclean
 
-re:				fclean all
+re:					fclean all
 
 $(LIBFT):
-				make -C libft/
-
-$(OBJDIR)%.o:	$(SRCDIR)%.c
-				$(CXX) $(CXXFLAGS) -c $< -o $@
-
-$(OBJDIR)%.o:	$(ENCRYPTION)%.s
-				$(ASM) $(ASMFLAGS) elf64 $< -o $@
+					make -C libft/
 
 $(OBJDIR):
-				@mkdir -p $(OBJDIR)
+					@mkdir -p $(OBJDIR)
 
-.PHONY:			re clean fclean obj all
+$(OBJDIR)%.o:		$(C_SRCDIR)%.c
+					$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJDIR)%.o:		$(ASM_SRCDIR)%.s
+					$(ASM) $(ASMFLAGS) elf64 $< -o $@
+
+$(PAYLOADDIR):
+					@mkdir -p $(PAYLOADDIR)
+
+$(PAYLOADDIR)%.bin:	$(ASM_SRCDIR)%.s
+					$(ASM) $(ASMFLAGS) bin $< -o $@
+
+.PHONY:				re clean fclean obj all

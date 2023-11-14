@@ -5,18 +5,10 @@ global _start
 section .text
 
 _start:
-
-	jmp parasite
-	mystr: db	"....WOODY....",10
-
-parasite:
-
 	push rax
-	push rcx
 	push rdx
-	push rsi
 	push rdi
-	push r11
+	push rsi
 
 	mov rax, 1
 	mov rdi, rax
@@ -24,11 +16,11 @@ parasite:
 	mov rdx, 14
 	syscall
 
-	pop r11
-	pop rdi
 	pop rsi
+	pop rdi
 	pop rdx
-	pop rcx
 	pop rax
 
 	ret
+
+mystr: db	"....WOODY....",10,0

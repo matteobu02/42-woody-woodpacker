@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   elf64.c                                            :+:      :+:    :+:   */
+/*   elf32.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
+/*   By: mbucci <mbucci@student.s19.be>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/08/15 13:49:18 by mbucci            #+#    #+#             */
-/*   Updated: 2023/11/06 13:12:09 by mbucci           ###   ########.fr       */
+/*   Created: 2023/11/07 12:38:12 by mbucci            #+#    #+#             */
+/*   Updated: 2023/11/07 13:51:49 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,22 +14,21 @@
 #include <elf.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <stdint.h>
 #include <stdio.h>
 
 /* Import ASM Function */
-extern void _rc4(void *bytes, uint64_t length, const char *key, uint32_t keysize);
+extern void _rc4_elf64(void *bytes, uint64_t length, const char *key, uint32_t keysize);
 
 /* Global Variables */
-static Elf64_Addr g_codeseg_addr = 0;
-static Elf64_Addr g_handler_addr = 0;
-static Elf64_Addr g_parasite_addr = 0;
-static Elf64_Addr g_decryptor_addr = 0;
+static Elf32_Addr g_codeseg_addr = 0;
+static Elf32_Addr g_handler_addr = 0;
+static Elf32_Addr g_parasite_addr = 0;
+static Elf32_Addr g_decryptor_addr = 0;
 
-static Elf64_Off g_codeseg_off = 0;
-static Elf64_Off g_handler_off = 0;
-static Elf64_Off g_parasite_off = 0;
-static Elf64_Off g_decryptor_off = 0;
+static Elf32_Off g_codeseg_off = 0;
+static Elf32_Off g_handler_off = 0;
+static Elf32_Off g_parasite_off = 0;
+static Elf32_Off g_decryptor_off = 0;
 
 static uint64_t g_codeseg_size = 0;
 static uint64_t g_handler_size = 0;
@@ -40,29 +39,29 @@ static uint64_t g_total_payload_size = 0;
 /* CODE */
 static int check_boundaries(const t_woody *context)
 {
-	Elf64_Ehdr *elf = (Elf64_Ehdr *)context->base;
+	Elf32_Ehdr *elf = (Elf32_Ehdr *)context->base;
 
-	if ((elf->e_shoff + (sizeof(Elf64_Shdr) * elf->e_shnum) > context->size)
-		|| (elf->e_phoff + (sizeof(Elf64_Phdr) * elf->e_phnum) > context->size)
-		|| ((elf->e_phentsize * elf->e_phnum) > (sizeof(Elf64_Phdr) * elf->e_phnum))
-		|| ((elf->e_shentsize * elf->e_shnum) > (sizeof(Elf64_Shdr) * elf->e_shnum))
-		|| (elf->e_ehsize > sizeof(Elf64_Ehdr))
+	if ((elf->e_shoff + (sizeof(Elf32_Shdr) * elf->e_shnum) > context->size)
+		|| (elf->e_phoff + (sizeof(Elf32_Phdr) * elf->e_phnum) > context->size)
+		|| ((elf->e_phentsize * elf->e_phnum) > (sizeof(Elf32_Phdr) * elf->e_phnum))
+		|| ((elf->e_shentsize * elf->e_shnum) > (sizeof(Elf32_Shdr) * elf->e_shnum))
+		|| (elf->e_ehsize > sizeof(Elf32_Ehdr))
 	)
 		return 1;
 
 	return 0;
 }
 
-static int check_exec(const Elf64_Ehdr *elf)
+static int check_exec(const Elf32_Ehdr *elf)
 {
-	Elf64_Phdr *ph_tab = (Elf64_Phdr *)((void *)elf + elf->e_phoff);
+	Elf32_Phdr *ph_tab = (Elf32_Phdr *)((void *)elf + elf->e_phoff);
 	for (uint16_t i = 0; i < elf->e_phnum; ++i)
 		if (ph_tab[i].p_type == PT_INTERP)
 			return 0;
 	return 1;
 }
 
-static void set_payload_values(Elf64_Off beginoff, Elf64_Addr beginaddr)
+static void set_payload_values(Elf32_Off beginoff, Elf32_Addr beginaddr)
 {
 	g_parasite_off = beginoff;
 	g_parasite_addr = beginaddr;
@@ -74,9 +73,9 @@ static void set_payload_values(Elf64_Off beginoff, Elf64_Addr beginaddr)
 	g_handler_addr = g_decryptor_addr + g_decryptor_size;
 }
 
-static void patch_section_offsets(const Elf64_Ehdr *elf)
+static void patch_section_offsets(const Elf32_Ehdr *elf)
 {
-	Elf64_Shdr *sh_tab = (Elf64_Shdr *)((void *)elf + elf->e_shoff);
+	Elf32_Shdr *sh_tab = (Elf32_Shdr *)((void *)elf + elf->e_shoff);
 
 	for (uint16_t i = 0; i < elf->e_shnum; ++i)
 	{
@@ -88,10 +87,10 @@ static void patch_section_offsets(const Elf64_Ehdr *elf)
 	}
 }
 
-static uint8_t not_injectable(Elf64_Ehdr *elf)
+static uint8_t not_injectable(Elf32_Ehdr *elf)
 {
-	Elf64_Phdr *ph_tab = (Elf64_Phdr *)((void *)elf + elf->e_phoff);
-	uint64_t padding = 0;
+	Elf32_Phdr *ph_tab = (Elf32_Phdr *)((void *)elf + elf->e_phoff);
+	uint32_t padding = 0;
 	int8_t found_code = 0;
 
 	for (uint16_t i = 0; i < elf->e_phnum && !found_code; ++i)
@@ -108,7 +107,7 @@ static uint8_t not_injectable(Elf64_Ehdr *elf)
 				padding = ph_tab[i + 1].p_offset - (g_codeseg_off + g_codeseg_size);
 
 			if (padding < g_total_payload_size)
-				return write_error(PADD_ERR);
+				return write_error(NULL, PADD_ERR);
 			else
 			{
 				ph_tab[i].p_filesz += g_total_payload_size;
@@ -120,7 +119,7 @@ static uint8_t not_injectable(Elf64_Ehdr *elf)
 	}
 
 	if (!found_code)
-		return write_error(LOAD_ERR);
+		return write_error(NULL, LOAD_ERR);
 
 	set_payload_values(g_codeseg_off + g_codeseg_size, g_codeseg_addr + g_codeseg_size);
 	patch_section_offsets(elf);
@@ -128,21 +127,21 @@ static uint8_t not_injectable(Elf64_Ehdr *elf)
 	return 0;
 }
 
-int woody_elf64(t_woody *context)
+int woody_elf32(t_woody *context)
 {
 	if (check_boundaries(context))
-		return write_error(CORRUPT_ERR);
+		return write_error(context->param_name, CORRUPT_ERR);
 
-	Elf64_Ehdr *elf = (Elf64_Ehdr *)context->base;
+	Elf32_Ehdr *elf = (Elf32_Ehdr *)context->base;
 	if (check_exec(elf))
-		return write_error(EXEC_ERR);
+		return write_error(context->param_name, ELFEXEC_ERR);
 
 	// generate key if need be
 	if (!context->keyisparam && !(context->key = generate_key(DFLT_KEY_LEN)))
-		return write_error(NULL);
+		return write_error(KEYGEN_ERR, NULL);
 
 	// get injection handler
-	void *handler = read_file(HANDLER_PATH, &g_handler_size);
+	void *handler = read_file(HANDLER_ELF32_PATH, &g_handler_size);
 	if (!handler)
 	{
 		free_payloads(context->key, NULL, NULL, NULL);
@@ -150,7 +149,7 @@ int woody_elf64(t_woody *context)
 	}
 
 	// get parasite
-	void *parasite = read_file(PARASITE_PATH, &g_parasite_size);
+	void *parasite = read_file(PARASITE_ELF32_PATH, &g_parasite_size);
 	if (!parasite)
 	{
 		free_payloads(context->key, handler, NULL, NULL);
@@ -158,7 +157,7 @@ int woody_elf64(t_woody *context)
 	}
 
 	// get decryptor
-	void *decryptor = read_file(DECRYPTOR_PATH, &g_decryptor_size);
+	void *decryptor = read_file(DECRYPTOR_ELF32_PATH, &g_decryptor_size);
 	if (!decryptor)
 	{
 		free_payloads(context->key, handler, parasite, NULL);
@@ -183,7 +182,7 @@ int woody_elf64(t_woody *context)
 	if ((woody_fd = open(PATCH, (O_CREAT | O_WRONLY | O_TRUNC), 0755)) == -1)
 	{
 		free_payloads(context->key, handler, parasite, decryptor);
-		return write_error(NULL);
+		return write_error(PATCH, NULL);
 	}
 
 	// time to print the key
@@ -191,26 +190,26 @@ int woody_elf64(t_woody *context)
 		print_key(context->key, DFLT_KEY_LEN);
 
 	// set entrypoint to start of payload
-	Elf64_Addr code_entry = elf->e_entry;
+	Elf32_Addr code_entry = elf->e_entry;
 	if (elf->e_type == ET_EXEC)
 	{
 		elf->e_entry = g_handler_addr;
-		patch_payload_addr64(handler, g_handler_size, 0x4242424242424242, g_parasite_addr); // offset to parasite
-		patch_payload_addr64(handler, g_handler_size, 0xAAAAAAAAAAAAAAAA, 0);
+		patch_payload_addr32(handler, g_handler_size, 0x42424242, g_parasite_addr); // offset to parasite
+		patch_payload_addr32(handler, g_handler_size, 0xAAAAAAAA, 0);
 	}
 	else
 	{
 		elf->e_entry = g_handler_off;
-		patch_payload_addr64(handler, g_handler_size, 0x4242424242424242, g_parasite_off); // offset to parasite
-		patch_payload_addr64(handler, g_handler_size, 0xAAAAAAAAAAAAAAAA, 1);
+		patch_payload_addr32(handler, g_handler_size, 0x42424242, g_parasite_off); // offset to parasite
+		patch_payload_addr32(handler, g_handler_size, 0xAAAAAAAA, 1);
 	}
 
 	patch_payload_addr32(handler, g_handler_size, 0x55555555, keysz); // key size
-	patch_payload_addr64(handler, g_handler_size, 0x4444444444444444, g_handler_off + g_handler_size); // offset to key
-	patch_payload_addr64(handler, g_handler_size, 0x1942194219421942, g_codeseg_size + g_parasite_size); // text size
-	patch_payload_addr64(handler, g_handler_size, 0x2222222222222222, g_codeseg_off); // text offset
-	patch_payload_addr64(handler, g_handler_size, 0x1919191919191919, g_decryptor_off); // offset to rc4
-	patch_payload_addr64(handler, g_handler_size, 0x3333333333333333, code_entry); // return controlflow
+	patch_payload_addr32(handler, g_handler_size, 0x44444444, g_handler_off + g_handler_size); // offset to key
+	patch_payload_addr32(handler, g_handler_size, 0x19421942, g_codeseg_size + g_parasite_size); // text size
+	patch_payload_addr32(handler, g_handler_size, 0x22222222, g_codeseg_off); // text offset
+	patch_payload_addr32(handler, g_handler_size, 0x19191919, g_decryptor_off); // offset to rc4
+	patch_payload_addr32(handler, g_handler_size, 0x33333333, code_entry); // return controlflow
 
 	// inject parasite
 	void *inject_addr = context->base + g_parasite_off;
@@ -229,7 +228,7 @@ int woody_elf64(t_woody *context)
 	ft_memmove(inject_addr, context->key, keysz);
 
 	// encrypt code segment
-	_rc4(context->base + g_codeseg_off, g_codeseg_size + g_parasite_size, context->key, keysz);
+	_rc4_elf64(context->base + g_codeseg_off, g_codeseg_size + g_parasite_size, context->key, keysz);
 
 	free_payloads(context->key, handler, parasite, decryptor);
 
@@ -238,7 +237,7 @@ int woody_elf64(t_woody *context)
 	// dump file into woody
 	if (write(woody_fd, context->base, context->size) == -1)
 	{
-		write_error(NULL);
+		write_error(PATCH, NULL);
 		close(woody_fd);
 		return 1;
 	}

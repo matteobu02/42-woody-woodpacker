@@ -3,23 +3,32 @@
 /*                                                        :::      ::::::::   */
 /*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbucci <marvin@42.fr>                      +#+  +:+       +#+        */
+/*   By: mbucci <mbucci@student.s19.be>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/08/12 12:04:44 by mbucci            #+#    #+#             */
-/*   Updated: 2023/11/06 13:13:56 by mbucci           ###   ########.fr       */
+/*   Created: 2023/11/07 12:38:36 by mbucci            #+#    #+#             */
+/*   Updated: 2023/11/07 13:30:38 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdio.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <string.h>
 #include "woody.h"
 
-int write_error(const char *msg)
+int write_error(const char *filename, const char *custmsg)
 {
-	if (!msg)
-		perror("Error");
+	fprintf(stderr, "Error: ");
+	if (filename)
+		fprintf(stderr, "%s: ", filename);
+	if (custmsg)
+		fprintf(stderr, "%s", custmsg);
 	else
-		fprintf(stderr, "Error: %s\n", msg);
+	{
+		const char *errmsg = strerror(errno);
+		fprintf(stderr, "%s", errmsg);
+	}
+	fprintf(stderr, "\n");
 
 	return 1;
 }
@@ -29,7 +38,7 @@ void *read_file(const char *path, uint64_t *fsize)
 	int fd = -1;
 	if ((fd = open(path, O_RDONLY)) == -1)
 	{
-		write_error(NULL);
+		write_error(path, NULL);
 		return NULL;
 	}
 
@@ -37,7 +46,7 @@ void *read_file(const char *path, uint64_t *fsize)
 	bytes = lseek(fd, 0, SEEK_END);
 	if (bytes == -1)
 	{
-		write_error(NULL);
+		write_error(path, NULL);
 		close(fd);
 		return NULL;
 	}
@@ -50,13 +59,13 @@ void *read_file(const char *path, uint64_t *fsize)
 		bytes = read(fd, file, *fsize);
 		if (bytes == -1)
 		{
-			write_error(NULL);
+			write_error(path, NULL);
 			free(file);
 			file = NULL;
 		}
 	}
 	else
-		write_error(NULL);
+		write_error(NULL, NULL);
 
 	close(fd);
 
@@ -67,7 +76,10 @@ char *generate_key(uint32_t keysz)
 {
 	int fd = open(URANDOM, O_RDONLY);
 	if (fd == -1)
+	{
+		write_error(URANDOM, NULL);
 		return NULL;
+	}
 
 	char *ret = (char *)malloc(sizeof(char) * keysz);
 
@@ -76,6 +88,8 @@ char *generate_key(uint32_t keysz)
 		if (read(fd, ret, keysz) == -1)
 		{}
 	}
+	else
+		write_error(NULL, NULL);
 
 	return ret;
 }
