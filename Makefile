@@ -1,5 +1,7 @@
 NAME		=	woody_woodpacker
 
+UNAME		=	$(shell uname)
+
 ASM			=	nasm
 ASMFLAGS	=	-f
 
@@ -15,58 +17,71 @@ PAYLOADDIR	=	./payloads/
 LIBFT		=	./libft/libft.a
 
 C_SRC		=	main.c	\
-				elf64.c	\
-				elf32.c	\
-				utils.c	\
+				utils.c
 
-CRYPT		=	rc4_elf64.s
+ifeq ($(UNAME), Linux)
+	C_SRC		+=	elf64.c	\
+					elf32.c
+
+	CRYPT		=	rc4_elf64.s
+	PAYLOAD_SRC	=	handler_elf64.s		\
+					parasite_elf64.s	\
+					rc4_elf64.s			\
+					handler_elf32.s		\
+					parasite_elf32.s	\
+					rc4_elf32.s
+
+	PAYLOADS	=	${addprefix $(PAYLOADDIR), $(PAYLOAD_SRC:%.s=%.bin)}
+
+else
+	C_SRC		+=	macho.c
+	PAYLOAD_SRC	=	parasite.c
+	PAYLOADS	=	${addprefix $(PAYLOADDIR), $(PAYLOAD_SRC:%.c=%.dynl)}
+endif
 
 OBJ			=	${addprefix $(OBJDIR), $(C_SRC:%.c=%.o)}
-OBJ			+=	${addprefix $(OBJDIR), $(CRYPT:%.s=%.o)}
 
-ASM_SRC		=	handler_elf64.s		\
-				parasite_elf64.s	\
-				rc4_elf64.s			\
-				handler_elf32.s		\
-				parasite_elf32.s	\
-				rc4_elf32.s			\
-
-PAYLOADS	=	${addprefix $(PAYLOADDIR), $(ASM_SRC:%.s=%.bin)}
+ifeq ($(UNAME), Linux)
+	OBJ		+=	${addprefix $(OBJDIR), $(CRYPT:%.s=%.o)}
+endif
 
 
 # ===== #
 
 
-all:				$(NAME)
+all:					$(NAME)
 
-$(NAME):			$(LIBFT) $(OBJDIR) $(OBJ) $(PAYLOADDIR) $(PAYLOADS)
-					$(CXX) $(CXXFLAGS) $(OBJ) -Llibft -lft -z noexecstack -o $(NAME)
+$(NAME):				$(LIBFT) $(OBJDIR) $(OBJ) $(PAYLOADDIR) $(PAYLOADS)
+						$(CXX) $(CXXFLAGS) $(OBJ) -Llibft -lft -o $(NAME)
 
 clean:
-					rm -rf $(NAME) woody
+						rm -rf $(NAME) woody
 
-fclean:				clean
-					rm -rf $(OBJDIR) $(PAYLOADDIR)
-					make -C libft/ fclean
+fclean:					clean
+						rm -rf $(OBJDIR) $(PAYLOADDIR)
+						make -C libft/ fclean
 
-re:					fclean all
+re:						fclean all
 
 $(LIBFT):
-					make -C libft/
+						make -C libft/
 
 $(OBJDIR):
-					@mkdir -p $(OBJDIR)
+						@mkdir -p $(OBJDIR)
 
-$(OBJDIR)%.o:		$(C_SRCDIR)%.c
-					$(CXX) $(CXXFLAGS) -c $< -o $@
+$(OBJDIR)%.o:			$(C_SRCDIR)%.c
+						$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(OBJDIR)%.o:		$(ASM_SRCDIR)%.s
-					$(ASM) $(ASMFLAGS) elf64 $< -o $@
+$(OBJDIR)%.o:			$(ASM_SRCDIR)%.s
+						$(ASM) $(ASMFLAGS) elf64 $< -o $@
 
 $(PAYLOADDIR):
-					@mkdir -p $(PAYLOADDIR)
+						@mkdir -p $(PAYLOADDIR)
 
-$(PAYLOADDIR)%.bin:	$(ASM_SRCDIR)%.s
-					$(ASM) $(ASMFLAGS) bin $< -o $@
+$(PAYLOADDIR)%.bin:		$(ASM_SRCDIR)%.s
+						$(ASM) $(ASMFLAGS) bin $< -o $@
 
-.PHONY:				re clean fclean obj all
+$(PAYLOADDIR)%.dynl:	$(C_SRCDIR)%.c
+						$(CXX) $(CXXFLAGS) -dynamiclib $< -o $@
+
+.PHONY:					re clean fclean obj all

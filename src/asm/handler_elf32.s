@@ -2,11 +2,12 @@ BITS 32
 
 global _start
 
-SYS_EXIT    equ 1
-SYS_READ    equ 3
-SYS_WRITE   equ 4
-SYS_OPEN    equ 5
-ALLOC_SPACE equ 16
+SYS_EXIT	equ 1
+SYS_READ	equ 3
+SYS_WRITE	equ 4
+SYS_OPEN	equ 5
+SYS_CLOSE	equ 6
+ALLOC_SPACE	equ 16
 
 section .text
 
@@ -79,7 +80,6 @@ get_base_addr:
 	;
 	; int read(int fd, void *buf, int n)
 	;
-
 	mov edx, 1
 	mov ebx, eax
 
@@ -91,7 +91,7 @@ get_base_addr:
 	cmp BYTE [esp], '-'
 	je .done
 
-	inc esi
+	inc esi				; addrlen
 	mov al, BYTE [esp]
 	cmp al, '9'
 	jle .found_digit
@@ -114,6 +114,14 @@ get_base_addr:
 .done:
 	sub esp, esi
 	add esp, ALLOC_SPACE
+
+	;
+	; close(fd)
+	;
+	pop ebx
+	mov eax, SYS_CLOSE
+	int 0x80
+
 	mov eax, edi
 	ret
 
@@ -127,17 +135,17 @@ get_base_addr:
 	;
 	; int open(const char *pathname, int flags)
 	;
-
 	mov eax, SYS_OPEN
 	xor ecx, ecx
 	call $ + 5
 	pop ebx
-	add ebx, 13
+	add ebx, 14
 	int 0x80
 
 	cmp eax, 0
 	jl .open_error
 
+	push eax	; save fd
 	jmp .setup_read
 
 filepath: db "/proc/self/maps",0

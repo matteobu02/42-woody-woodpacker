@@ -6,15 +6,15 @@
 /*   By: mbucci <mbucci@student.s19.be>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/07 12:38:36 by mbucci            #+#    #+#             */
-/*   Updated: 2023/11/07 13:30:38 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/11/20 17:05:18 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdio.h>
-#include <fcntl.h>
-#include <errno.h>
 #include <string.h>
-#include "woody.h"
+#include <errno.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 int write_error(const char *filename, const char *custmsg)
 {
@@ -32,6 +32,11 @@ int write_error(const char *filename, const char *custmsg)
 
 	return 1;
 }
+
+#ifdef __linux__
+
+#include <fcntl.h>
+#include <unistd.h>
 
 void *read_file(const char *path, uint64_t *fsize)
 {
@@ -72,12 +77,12 @@ void *read_file(const char *path, uint64_t *fsize)
 	return file;
 }
 
-char *generate_key(uint32_t keysz)
+char *generate_key(const char *random, uint32_t keysz)
 {
-	int fd = open(URANDOM, O_RDONLY);
+	int fd = open(random, O_RDONLY);
 	if (fd == -1)
 	{
-		write_error(URANDOM, NULL);
+		write_error(random, NULL);
 		return NULL;
 	}
 
@@ -135,3 +140,25 @@ void free_payloads(char *k, void *p1, void *p2, void *p3)
 	free(p2);
 	free(p3);
 }
+
+#elif __APPLE__
+
+size_t fpeek(void *restrict ptr, size_t size, size_t nitems, FILE *restrict stream)
+{
+	off_t pos = ftello(stream);
+	size_t result = fread(ptr, size, nitems, stream);
+	fseeko(stream, pos, SEEK_SET);
+	return result;
+}
+
+void *read_load_command(FILE *f, uint32_t cmdsize)
+{
+	void *lc = malloc(cmdsize);
+	if(!lc){
+		fclose(f);
+		exit(-1);
+	}
+	fpeek(lc, cmdsize, 1, f);
+	return lc;
+}
+#endif

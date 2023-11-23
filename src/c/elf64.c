@@ -3,19 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   elf64.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbucci <mbucci@student.s19.be>             +#+  +:+       +#+        */
+/*   By: jdecorte42 <jdecorte42@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/07 12:37:51 by mbucci            #+#    #+#             */
-/*   Updated: 2023/11/07 13:33:54 by mbucci           ###   ########.fr       */
+/*   Updated: 2023/11/20 16:29:38 by mbucci           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "woody.h"
-#include <elf.h>
-#include <stdlib.h>
 #include <fcntl.h>
-#include <stdint.h>
-#include <stdio.h>
+#include "woody_generic.h"
+#include "woody_elf.h"
 
 /* Import ASM Function */
 extern void _rc4_elf64(void *bytes, uint64_t length, const char *key, uint32_t keysize);
@@ -138,7 +135,7 @@ int woody_elf64(t_woody *context)
 		return write_error(context->param_name, ELFEXEC_ERR);
 
 	// generate key if need be
-	if (!context->keyisparam && !(context->key = generate_key(DFLT_KEY_LEN)))
+	if (!context->keyisparam && !(context->key = generate_key(URANDOM, DFLT_KEY_LEN)))
 		return 1;
 
 	// get injection handler
@@ -232,8 +229,6 @@ int woody_elf64(t_woody *context)
 	_rc4_elf64(context->base + g_codeseg_off, g_codeseg_size + g_parasite_size, context->key, keysz);
 
 	free_payloads(context->key, handler, parasite, decryptor);
-
-	// TODO: strip file
 
 	// dump file into woody
 	if (write(woody_fd, context->base, context->size) == -1)
