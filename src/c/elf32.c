@@ -50,15 +50,6 @@ static int check_boundaries(const t_woody *context)
 	return 0;
 }
 
-static int check_exec(const Elf32_Ehdr *elf)
-{
-	Elf32_Phdr *ph_tab = (Elf32_Phdr *)((void *)elf + elf->e_phoff);
-	for (uint16_t i = 0; i < elf->e_phnum; ++i)
-		if (ph_tab[i].p_type == PT_INTERP)
-			return 0;
-	return 1;
-}
-
 static void set_payload_values(Elf32_Off beginoff, Elf32_Addr beginaddr)
 {
 	g_parasite_off = beginoff;
@@ -131,8 +122,6 @@ int woody_elf32(t_woody *context)
 		return write_error(context->param_name, CORRUPT_ERR);
 
 	Elf32_Ehdr *elf = (Elf32_Ehdr *)context->base;
-	if (check_exec(elf))
-		return write_error(context->param_name, ELFEXEC_ERR);
 
 	// generate key if need be
 	if (!context->keyisparam && !(context->key = generate_key(URANDOM, DFLT_KEY_LEN)))
@@ -191,17 +180,15 @@ int woody_elf32(t_woody *context)
 	Elf32_Addr code_entry = elf->e_entry;
 	if (elf->e_type == ET_EXEC)
 	{
-		elf->e_entry = g_handler_addr;
-		patch_payload_addr32(handler, g_handler_size, 0x42424242, g_parasite_addr); // offset to parasite
 		patch_payload_addr32(handler, g_handler_size, 0xAAAAAAAA, 0);
 	}
 	else
 	{
-		elf->e_entry = g_handler_off;
-		patch_payload_addr32(handler, g_handler_size, 0x42424242, g_parasite_off); // offset to parasite
 		patch_payload_addr32(handler, g_handler_size, 0xAAAAAAAA, 1);
 	}
 
+	elf->e_entry = g_handler_addr;
+	patch_payload_addr32(handler, g_handler_size, 0x42424242, g_parasite_addr); // offset to parasite
 	patch_payload_addr32(handler, g_handler_size, 0x55555555, keysz); // key size
 	patch_payload_addr32(handler, g_handler_size, 0x44444444, g_handler_off + g_handler_size); // offset to key
 	patch_payload_addr32(handler, g_handler_size, 0x19421942, g_codeseg_size + g_parasite_size); // text size

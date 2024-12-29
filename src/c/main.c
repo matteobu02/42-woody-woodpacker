@@ -45,6 +45,9 @@ static int check_arg(const char *filename, const char *key)
 	else if (elf->e_type != ET_EXEC && elf->e_type != ET_DYN)
 		write_error(filename, ELFEXEC_ERR);
 
+    else if (!elf->e_entry)
+        write_error(filename, ELFEXEC_ERR);
+
 	else // do the thing
 	{
 		if (f_ident[EI_CLASS] == ELFCLASS64)
